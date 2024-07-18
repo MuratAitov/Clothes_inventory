@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mayor Construction Inventory List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='mayor_logo.png') }}" alt="Mayor Construction Logo">
+            <h1>Inventory List</h1>
+        </div>
+        
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Your Foreman</th>
+                    <th>Item Name/Color</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryBody">
+                <tr>
+                    <td><input type="date" id="dateInput" value="{{ datetime.now().strftime('%Y-%m-%d') }}" required></td>
+                    <td><input type="text" id="nameInput" placeholder="Enter name" required></td>
+                    <td>
+                        <select id="foremanDropdown" class="foreman-dropdown" required>
+                            <option value="">Select foreman</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="itemDropdown" class="item-dropdown" required onchange="updateTypeOptions(this)">
+                            <option value="">Select item</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select id="typeDropdown" class="type-dropdown">
+                            <option value="">Select type</option>
+                        </select>
+                    </td>
+                    <td><input type="number" id="quantityInput" placeholder="Quantity" required></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="button-container">
+            <button id="addRowBtn">+</button>
+            <button id="submitBtn">Submit</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

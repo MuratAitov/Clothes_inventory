@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "healthy-saga-428922-n9",
+  "private_key_id": "d1d231903861c7e16ed4ad8d6035134dc0a4127b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC1/ihPSbHbPu9Q\nRquAJLtAHO/NTjdJKMrMNvI5X3GED6lFAFdB6uiVIpYoOxu0NYENtIX0ygMFCnF5\nQL9smu/boM3UrdVxfJUMkc2ndj2MQdlPApThAofTY4fcrqn15AfeCfdW8Kba/iJ3\nQCMd27Ma7U7wzFmqTZoaEYaM6GdWx66ZdNHcBxrtTS2NC2ktkwjbAf3/KIDwyEqm\nb9xHHZqsCDaa4pgMaqSn0WuRF1kHaV196lVrrAlAJf50AqHvidBQKgwLt0sXzFWj\nBufMpOnv/3hYTwzObqQta/b3Ymxazot0AdM5Aa0MODC+P9Yd8yfbJHVXxaE6vmk7\nZfCI6UADAgMBAAECggEAPs/QY8UgkHYBLKinalvDENar4ST8qdBdZewU375UNGsf\nVcRPWV3VFhvQzWPRJPpOZ0eF8D2Em0nGbj3tk3NKE3hFcgDpKPkBjEwKOaDyjyTu\n9nkCn0I7VLcGXiEeYdJo8LZp2mTGgdCyXowRUq3P/BwpYax1yfRsmlCwKpPPjsBX\nb6HQa/RmWLciujre4N7A4HBZ5OAHb3sNcbs0kLcGruvdymxSHSFMe1ghzmTaqPLg\n8MQtKTxznHmoxPeWlsX0J9r9sVpjhmiIe3D7WQjAe0JcfCU5U9LzDAb0j0QaIRBN\ngn7M9vlH5wgVvHQdHd0ZCzUJIBV0uP3TC4EiK6h9qQKBgQD8S4aUVySlYBynLFjM\nW+yyNYE37gBZjp/kPqvJfO8lLDlzZjCJvYc4m0hK1ta4FSw9eB2uRBf+b4hGQ3DS\nQdH7OM77MARlkW5LxyAWQ/XiH2nLmzOGH0+tS+Yns2rDbkHOgdbLWBZ9XkViK2Lx\nAm9yKo+P0JDz9WW8X3Y4S0YQNQKBgQC4qlauc67yq3iJK0sB0q8RQ/ZuVtp8nOdS\npY3s1JNxuyFF/hALjYReBM9UyLWTfdEKS9g+ShdMQYVFH+q38NmPgsW+CoUmo5+d\noyjfS9wu5Tr27AMkV5XFIK05Ki1+plQYwluRcGpyQl8tuoir/11JVB0DcKdlv3Xl\nzqLF2OaGVwKBgQDfG17ooWNrx2GvSB1Couve8EfUEOlISUMGEZHSvWOx6LjpXu3/\ncJY6rb8xR2lcIoUb2rPMnrTlMPY+xHbpyIELe0I2iVDqDMCPzIiIiBLRo1voTNg0\nfE32fw8J/rSkHEWfe9xZuA0zUoFi/eEiJjgtqouH7zWwN0t/WJ/vykksHQKBgDCM\nqAlpZJ9sMV5uwWOTTm+NnKZZs0t7vN1fpTaUlMcb2Z2bNAC1jg1h2liCBCrosyKv\n2gRWWlW0DCOmRoFhkvFGAlL6VRNZhUdedApw2UyC+8ObPSA63qda9e/HhPp9JDL2\nNjjAg1vS008kcXY2xwHWWWJkJb58XbSzZNv7MHA1AoGBAMtblQA0Y+/ZcM1yXqUN\ndrsE8KlzM4p8wHdu58+Vkl8exlZ2oIbZOItzulC2t9Kh5549t6iJZEh3s7CNOGYw\nOsdr9Y6ptyJyI7V+EwRyTQXHbgMDis6qyJ/NOuzIO9jblZ8HDILmbDxITazwzwMt\ncbeyb/UH3vnMwm6+Ga99O/jg\n-----END PRIVATE KEY-----\n",
+  "client_email": "murat-aitov@healthy-saga-428922-n9.iam.gserviceaccount.com",
+  "client_id": "100034659763410584718",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/murat-aitov%40healthy-saga-428922-n9.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
