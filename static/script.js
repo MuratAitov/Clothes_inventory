@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('addRowBtn');
     const inventoryBody = document.getElementById('inventoryBody');
     const submitBtn = document.getElementById('submitBtn');
+    const suggestionsList = document.getElementById('suggestions');
 
     // Fetch items and types from server
     fetch('/get_items_and_types')
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
             <td data-label="Date"><input type="date" value="${new Date().toISOString().split('T')[0]}" required></td>
-            <td data-label="Name"><input type="text" placeholder="Enter name" required></td>
+            <td data-label="Name"><input type="text" placeholder="Enter name" oninput="searchWorker(this.value, this.nextElementSibling)" required><ul class="suggestions"></ul></td>
             <td data-label="Your Foreman">
                 <select class="foreman-dropdown" required>
                     <option value="">Select foreman</option>
@@ -86,6 +87,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listener for the delete button
         newRow.querySelector('.deleteRowBtn').addEventListener('click', function() {
             deleteRow(newRow);
+        });
+
+        // Add event listener for the search worker input
+        newRow.querySelector('input[oninput="searchWorker(this.value, this.nextElementSibling)"]').addEventListener('input', function() {
+            searchWorker(this.value, this.nextElementSibling);
         });
     });
 
@@ -175,6 +181,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Function to search for workers
+    window.searchWorker = function(query, suggestionsElement) {
+        fetch(`/search?q=${query}&type=name`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsElement.innerHTML = '';
+                if (data.length > 0) {
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        li.addEventListener('click', function() {
+                            document.getElementById('nameInput').value = item;
+                            suggestionsElement.innerHTML = '';
+                        });
+                        suggestionsElement.appendChild(li);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error searching for workers:', error);
+            });
+    };
+
     // Modal functionality
     const passwordModal = document.getElementById('passwordModal');
     const passwordInput = document.getElementById('passwordInput');
@@ -183,12 +212,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let action = ''; // To keep track of whether we're loading or downloading
 
-    document.getElementById('loadBtn').addEventListener('click', function() {
+    document.getElementById('loadStockBtn').addEventListener('click', function() {
         action = 'load';
         passwordModal.style.display = 'block';
     });
 
-    document.getElementById('downloadBtn').addEventListener('click', function() {
+    document.getElementById('downloadStockBtn').addEventListener('click', function() {
         action = 'download';
         passwordModal.style.display = 'block';
     });
@@ -198,9 +227,9 @@ document.addEventListener('DOMContentLoaded', function() {
             passwordModal.style.display = 'none';
             passwordInput.value = '';
             if (action === 'load') {
-                loadData();
+                loadStockData();
             } else if (action === 'download') {
-                downloadData();
+                downloadStockData();
             }
         } else {
             alert('Incorrect password');
@@ -217,13 +246,35 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    function loadData() {
-        // Add your load data logic here
-        alert('Loading data...');
+    function loadStockData() {
+        fetch('/load_stock')
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('Stock data loaded successfully!');
+                } else {
+                    alert('Error loading stock data.');
+                }
+            })
+            .catch(error => {
+                console.error('Error loading stock data:', error);
+            });
     }
 
-    function downloadData() {
-        // Add your download data logic here
-        alert('Downloading data...');
+    function downloadStockData() {
+        fetch('/download_stock', {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Stock data downloaded successfully!');
+            } else {
+                alert('Error downloading stock data.');
+            }
+        })
+        .catch(error => {
+            console.error('Error downloading stock data:', error);
+        });
     }
 });
