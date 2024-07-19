@@ -174,4 +174,56 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteRow(button.closest('tr'));
         });
     });
+
+    // Modal functionality
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('passwordInput');
+    const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
+    const span = document.getElementsByClassName('close')[0];
+
+    let action = ''; // To keep track of whether we're loading or downloading
+
+    document.getElementById('loadBtn').addEventListener('click', function() {
+        action = 'load';
+        passwordModal.style.display = 'block';
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+        action = 'download';
+        passwordModal.style.display = 'block';
+    });
+
+    confirmPasswordBtn.addEventListener('click', function() {
+        if (passwordInput.value === '0000') {
+            passwordModal.style.display = 'none';
+            passwordInput.value = '';
+            if (action === 'load') {
+                loadData();
+            } else if (action === 'download') {
+                downloadData();
+            }
+        } else {
+            alert('Incorrect password');
+        }
+    });
+
+    span.onclick = function() {
+        passwordModal.style.display = 'none';
+    };
+
+    window.onclick = function(event) {
+        if (event.target === passwordModal) {
+            passwordModal.style.display = 'none';
+        }
+    };
+
+    function loadData() {
+        // Add your load data logic here
+        alert('Loading data...');
+    }
+
+    function downloadData() {
+        // Add your download data logic here
+        alert('Downloading data...');
+    }
 });

@@ -11,6 +11,10 @@
         <div class="header">
             <img src="{{ url_for('static', filename='mayor_logo.png') }}" alt="Mayor Construction Logo">
             <h1>Inventory List</h1>
+            <div class="header-buttons">
+                <button id="loadBtn">Load</button>
+                <button id="downloadBtn">Download</button>
+            </div>
         </div>
         
         <table id="inventoryTable">
@@ -22,7 +26,7 @@
                     <th>Item Name/Color</th>
                     <th>Type</th>
                     <th>Quantity</th>
-                    <th>Action</th> <!-- Колонка для действий -->
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody id="inventoryBody">
@@ -45,7 +49,7 @@
                         </select>
                     </td>
                     <td data-label="Quantity"><input type="number" id="quantityInput" placeholder="Quantity" required></td>
-                    <td data-label="Action"><button class="deleteRowBtn">Delete</button></td> <!-- Кнопка удаления -->
+                    <td data-label="Action"><button class="deleteRowBtn">Delete</button></td>
                 </tr>
             </tbody>
         </table>
@@ -53,6 +57,16 @@
         <div class="button-container">
             <button id="addRowBtn">+</button>
             <button id="submitBtn">Submit</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода пароля -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Enter Password</h2>
+            <input type="password" id="passwordInput" placeholder="Enter password">
+            <button id="confirmPasswordBtn">Confirm</button>
         </div>
     </div>
 
