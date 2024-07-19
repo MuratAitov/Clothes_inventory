@@ -62,7 +62,6 @@ def submit():
                     print(f"Name not found in Data Storage: {entry['name']}, adding it.")
                     row = len(data_storage_sheet.get_all_values()) + 1  # Determine the next row to add the name
                     data_storage_sheet.update_cell(row, 1, entry['name'])  # Update the specific cell in column A (column index 1)
-                    data_storage_sheet.update_cell(row, 2, entry['foreman'])  # Update the specific cell in column B (column index 2)
                     print(f"Added name '{entry['name']}' with foreman '{entry['foreman']}' to row {row}")  # Column index is 1
                     names.append(entry['name'])  # Update the list of names
 

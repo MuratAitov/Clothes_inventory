@@ -59,27 +59,27 @@ document.addEventListener('DOMContentLoaded', function() {
     addRowBtn.addEventListener('click', function() {
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
-            <td><input type="date" value="${new Date().toISOString().split('T')[0]}" required></td>
-            <td><input type="text" placeholder="Enter name" required></td>
-            <td>
+            <td data-label="Date"><input type="date" value="${new Date().toISOString().split('T')[0]}" required></td>
+            <td data-label="Name"><input type="text" placeholder="Enter name" required></td>
+            <td data-label="Your Foreman">
                 <select class="foreman-dropdown" required>
                     <option value="">Select foreman</option>
                     ${foremanDropdownTemplate.innerHTML}
                 </select>
             </td>
-            <td>
+            <td data-label="Item Name/Color">
                 <select class="item-dropdown" required onchange="updateTypeOptions(this)">
                     <option value="">Select item</option>
                     ${itemDropdownTemplate.innerHTML}
                 </select>
             </td>
-            <td>
+            <td data-label="Type">
                 <select class="type-dropdown">
                     <option value="">Select type</option>
                 </select>
             </td>
-            <td><input type="number" placeholder="Quantity" required></td>
-            <td><button class="deleteRowBtn">Delete</button></td> <!-- Delete button -->
+            <td data-label="Quantity"><input type="number" placeholder="Quantity" required></td>
+            <td data-label="Action"><button class="deleteRowBtn">Delete</button></td>
         `;
         inventoryBody.appendChild(newRow);
 
