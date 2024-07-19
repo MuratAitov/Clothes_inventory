@@ -55,7 +55,6 @@ def search():
         print(f"Matched items: {matched_items}")
         return jsonify(matched_items)
     return jsonify([])
-
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
@@ -82,14 +81,21 @@ def submit():
                     session.commit()
                     print(f"Added foreman '{entry['foreman']}' to Foreman table")
 
-                new_entry = Stock(
+                # Update the Stock quantity
+                stock_item = session.query(Stock).filter_by(
                     item=entry['item'],
                     item_type=entry['type'],
-                    size=entry['quantity'],  # Assuming size is stored in quantity field
-                    quantity=int(entry['quantity'])
-                )
-                session.add(new_entry)
-                session.commit()
+                    size=entry['size']
+                ).first()
+                if stock_item:
+                    if stock_item.quantity >= int(entry['quantity']):
+                        stock_item.quantity -= (int(entry['quantity']))
+                        session.commit()
+                    else:
+                        return jsonify({'status': 'failure', 'message': f'Not enough stock for item {entry["item"]}, type {entry["type"]}, size {entry["size"]}. Available: {stock_item.quantity}, requested: {entry["quantity"]}'}), 400
+
+                else:
+                    return jsonify({'status': 'failure', 'message': f'Stock item not found for item {entry["item"]}, type {entry["type"]}, size {entry["size"]}.'}), 400
 
                 # Add entry to report
                 report_date = datetime.strptime(entry['date'], '%Y-%m-%d').date()  # Convert string to date
@@ -99,6 +105,7 @@ def submit():
                     foreman_name=entry['foreman'],
                     item=entry['item'],
                     item_type=entry['type'],
+                    size=entry['size'],
                     quantity=int(entry['quantity'])
                 )
                 session.add(new_report)
@@ -111,6 +118,7 @@ def submit():
         print(f"Error in submit: {str(e)}")
         print(traceback.format_exc())
         return jsonify({'status': 'failure', 'message': str(e)}), 500
+
     
 @app.route('/get_items_and_types', methods=['GET'])
 def get_items_and_types():

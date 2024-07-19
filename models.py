@@ -25,15 +25,15 @@ class Foreman(Base):
     
     
 class Report(Base):
-    __tablename__ = 'reports'
-    id = Column(Integer, primary_key=True)
+    __tablename__ = 'report'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     date = Column(Date, nullable=False)
     worker_name = Column(String, nullable=False)
     foreman_name = Column(String, nullable=False)
     item = Column(String, nullable=False)
     item_type = Column(String, nullable=False)
+    size = Column(String, nullable=False)  # New column
     quantity = Column(Integer, nullable=False)
-
 
 engine = create_engine('sqlite:///inventory.db')
 Base.metadata.create_all(engine)
