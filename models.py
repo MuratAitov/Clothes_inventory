@@ -34,6 +34,13 @@ class Report(Base):
     item_type = Column(String, nullable=False)
     size = Column(String, nullable=False)  # New column
     quantity = Column(Integer, nullable=False)
+    
+class IndividualReport(Base):
+    __tablename__ = 'individual_report'
+    id = Column(Integer, primary_key=True)
+    worker_name = Column(String)
+    total_tshirts_last_year = Column(Integer)
+    last_tshirt_date = Column(Date)
 
 engine = create_engine('sqlite:///inventory.db')
 Base.metadata.create_all(engine)

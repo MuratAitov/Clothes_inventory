@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const rows = inventoryBody.querySelectorAll('tr');
         const data = [];
         let valid = true;
-
+    
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             const rowData = {};
@@ -176,18 +176,18 @@ document.addEventListener('DOMContentLoaded', function() {
             rowData.type = cells[4].querySelector('select').value;
             rowData.size = cells[5].querySelector('select').value;
             rowData.quantity = cells[6].querySelector('input').value;
-
+    
             if (!rowData.date || !rowData.name || !rowData.foreman || !rowData.item || !rowData.type || !rowData.size || !rowData.quantity) {
                 valid = false;
                 alert('Please fill out all fields.');
                 return false;
             }
-
+    
             data.push(rowData);
         });
-
+    
         if (!valid) return;
-
+    
         fetch('/submit', {
             method: 'POST',
             headers: {
@@ -207,6 +207,8 @@ document.addEventListener('DOMContentLoaded', function() {
                   firstRow.querySelectorAll('input').forEach(input => input.value = '');
                   firstRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
                   firstRow.querySelector('.quantity-input').placeholder = '';
+                  // Reload the page after successful submission
+                  location.reload();
               } else {
                   alert('Error submitting data.');
               }
@@ -215,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
               console.error('Error submitting data:', error);
           });
     });
+    
 
     window.updateTypeOptions = function(selectElement) {
         const selectedItem = selectElement.value;
@@ -399,11 +402,13 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     function loadStockData() {
-        fetch('/load_stock')
+        fetch('/load_all_data')
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
                     alert('Stock data loaded successfully!');
+                    // Reload the page after successful load
+                    location.reload();
                 } else {
                     alert('Error loading stock data.');
                 }
@@ -412,21 +417,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error loading stock data:', error);
             });
     }
+    
 
     function downloadStockData() {
-        fetch('/download_stock', {
+        fetch('/download_all_data', {
             method: 'POST'
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('Stock data downloaded successfully!');
+                alert('All data downloaded successfully!');
             } else {
-                alert('Error downloading stock data.');
+                alert('Error downloading all data.');
             }
         })
         .catch(error => {
-            console.error('Error downloading stock data:', error);
+            console.error('Error downloading all data:', error);
         });
     }
 });

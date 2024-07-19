@@ -6,6 +6,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, Stock, Report, Worker, Foreman
 import traceback
+from sqlalchemy import func
+import logging
+from collections import OrderedDict
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -16,6 +21,8 @@ client = gspread.authorize(creds)
 data_storage_sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0').worksheet("Data Storage")
 report_sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0').worksheet("Report")
 stock_sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0').worksheet("Stock")
+workers_sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0').worksheet("Workers")
+foremen_sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0').worksheet("Foremen")
 
 # Local database setup
 engine = create_engine('sqlite:///inventory.db')
@@ -147,65 +154,133 @@ def get_items_and_types():
         print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
-@app.route('/load_stock', methods=['GET'])
-def load_stock():
+@app.route('/load_all_data', methods=['GET'])
+def load_all_data():
     try:
-        session.query(Stock).delete()  # Clear existing data in the local database
+        # Очистка существующих данных
+        session.query(Stock).delete()
+        session.query(Worker).delete()
+        session.query(Foreman).delete()
 
-        data = stock_sheet.get_all_values()
-        headers = data[0]
-        sizes = [row[0] for row in data[1:]]
+        # Загрузка данных stock
+        stock_data = stock_sheet.get_all_values()
+        if len(stock_data) < 3:
+            raise ValueError("Stock sheet must have at least 3 rows")
+
+        headers = stock_data[0]
+        item_types = stock_data[1]
+        sizes = [row[0] for row in stock_data[2:]]
 
         for col_idx in range(1, len(headers)):
-            item_info = headers[col_idx].split(' ')
-            item = item_info[0]
-            item_type = item_info[1] if len(item_info) > 1 else ""
-            for row_idx in range(1, len(data)):
-                size = sizes[row_idx - 1]
-                quantity = data[row_idx][col_idx]
-                if quantity:
-                    new_stock = Stock(
-                        item=item,
-                        item_type=item_type,
-                        size=size,
-                        quantity=int(quantity)
-                    )
-                    session.add(new_stock)
+            item = headers[col_idx]
+            item_type = item_types[col_idx]  # Сохраняем полное значение типа
+
+            for row_idx, size in enumerate(sizes):
+                if row_idx + 2 < len(stock_data):
+                    quantity = stock_data[row_idx + 2][col_idx]
+                    if quantity and quantity.isdigit():
+                        new_stock = Stock(
+                            item=item,
+                            item_type=item_type,  # Используем полное значение типа
+                            size=size,
+                            quantity=int(quantity)
+                        )
+                        session.add(new_stock)
+                else:
+                    app.logger.warning(f"Ran out of rows at index {row_idx + 2} for column {col_idx}")
+                    break
+
+        # Загрузка данных workers (без изменений)
+        workers_data = workers_sheet.get_all_values()[1:]  # Пропускаем заголовок
+        for row in workers_data:
+            if row and row[0]:  # Проверяем, что строка не пуста и имя существует
+                new_worker = Worker(name=row[0])
+                session.add(new_worker)
+
+        # Загрузка данных foremen (без изменений)
+        foremen_data = foremen_sheet.get_all_values()[1:]  # Пропускаем заголовок
+        for row in foremen_data:
+            if row and row[0]:  # Проверяем, что строка не пуста и имя существует
+                new_foreman = Foreman(name=row[0])
+                session.add(new_foreman)
+
         session.commit()
-        return jsonify({'status': 'success'})
+        return jsonify({'status': 'success', 'message': 'All data loaded successfully'})
     except Exception as e:
         session.rollback()
-        print(f"Error in load_stock: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({'status': 'failure', 'message': str(e)}), 500
-
-@app.route('/download_stock', methods=['POST'])
-def download_stock():
+        error_msg = f"An error occurred: {str(e)}\n{traceback.format_exc()}"
+        app.logger.error(error_msg)
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+    
+@app.route('/download_all_data', methods=['POST'])
+def download_all_data():
+    app.logger.info("Starting download_all_data function")
     try:
+        # Выгрузка данных stock
+        app.logger.debug("Fetching stock data from database")
         stock_data = session.query(Stock).all()
-        sizes = sorted(set(stock.size for stock in stock_data))
-        items = sorted(set((stock.item, stock.item_type) for stock in stock_data))
+        app.logger.debug(f"Fetched {len(stock_data)} stock records")
 
-        data = [['Size'] + [f"{item} {item_type}" for item, item_type in items]]
+        # Define the expected size order
+        size_order = ('S', 'M', 'L', 'XL', 'XLL', 'XLLL')
 
-        for size in sizes:
-            row = [size]
-            for item, item_type in items:
-                quantity = session.query(Stock.quantity).filter_by(size=size, item=item, item_type=item_type).first()
-                row.append(quantity[0] if quantity else 0)
-            data.append(row)
+        # Group items and their types while preserving order
+        items_and_types = OrderedDict()
+        for stock in stock_data:
+            if stock.item not in items_and_types:
+                items_and_types[stock.item] = OrderedDict()
+            if stock.item_type not in items_and_types[stock.item]:
+                items_and_types[stock.item][stock.item_type] = True
 
-        # Clear existing data in the Google Sheet
+        # Create header rows
+        stock_sheet_data = [[''], ['']]  # First cell empty in both rows
+        for item, types in items_and_types.items():
+            stock_sheet_data[0].extend([item] * len(types))
+            stock_sheet_data[1].extend([f"{type}({item})" for type in types])
+
+        # Fill in the data
+        for size in size_order:
+            size_row = [size]
+            for item, types in items_and_types.items():
+                for item_type in types:
+                    quantity = session.query(func.sum(Stock.quantity)).filter_by(
+                        size=size, item=item, item_type=item_type).scalar()
+                    size_row.append(quantity if quantity else 0)
+            stock_sheet_data.append(size_row)
+
+        app.logger.debug("Updating stock sheet")
         stock_sheet.clear()
-        # Update the sheet with new data
-        for row in data:
-            stock_sheet.append_row(row)
+        stock_sheet.append_rows(stock_sheet_data)
+        app.logger.debug("Stock sheet updated successfully")
 
-        return jsonify({'status': 'success'})
+        # Выгрузка данных report
+        app.logger.debug("Fetching report data from database")
+        report_data = [['Date', 'Worker Name', 'Foreman Name', 'Item', 'Item Type', 'Size', 'Quantity']]
+        report_records = session.query(Report).all()
+        app.logger.debug(f"Fetched {len(report_records)} report records")
+        report_data += [
+            [str(report.date), report.worker_name, report.foreman_name,
+             report.item, report.item_type, report.size, report.quantity]
+            for report in report_records
+        ]
+
+        app.logger.debug("Updating report sheet")
+        report_sheet.clear()
+        report_sheet.append_rows(report_data)
+        app.logger.debug("Report sheet updated successfully")
+
+        app.logger.info("All data downloaded successfully")
+        return jsonify({'status': 'success', 'message': 'All data downloaded successfully'})
+
     except Exception as e:
-        print(f"Error in download_stock: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({'status': 'failure', 'message': str(e)}), 500
+        app.logger.error(f"An error occurred: {str(e)}")
+        app.logger.error(traceback.format_exc())
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)
+    app.config['DEBUG'] = True
+    app.config['PROPAGATE_EXCEPTIONS'] = True
+    
