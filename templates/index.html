@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mayor Construction Inventory List</title>
+    <title>Inventory List</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -12,8 +12,8 @@
             <img src="{{ url_for('static', filename='mayor_logo.png') }}" alt="Mayor Construction Logo">
             <h1>Inventory List</h1>
             <div class="header-buttons">
-                <button id="loadBtn">Load</button>
-                <button id="downloadBtn">Download</button>
+                <button id="loadStockBtn">Load</button>
+                <button id="downloadStockBtn">Download</button>
             </div>
         </div>
         
@@ -22,9 +22,10 @@
                 <tr>
                     <th>Date</th>
                     <th>Name</th>
-                    <th>Your Foreman</th>
-                    <th>Item Name/Color</th>
+                    <th>Foreman</th>
+                    <th>Item</th>
                     <th>Type</th>
+                    <th>Size</th>
                     <th>Quantity</th>
                     <th>Action</th>
                 </tr>
@@ -32,10 +33,7 @@
             <tbody id="inventoryBody">
                 <tr>
                     <td data-label="Date"><input type="date" id="dateInput" value="{{ datetime.now().strftime('%Y-%m-%d') }}" required></td>
-                    <td data-label="Name">
-                        <input type="text" id="nameInput" placeholder="Enter name" oninput="searchWorker(this.value, this.nextElementSibling)" required>
-                        <ul id="suggestions" class="suggestions"></ul>
-                    </td>
+                    <td data-label="Name"><input type="text" id="nameInput" placeholder="Enter name" required></td>
                     <td data-label="Your Foreman">
                         <select id="foremanDropdown" class="foreman-dropdown" required>
                             <option value="">Select foreman</option>
@@ -51,26 +49,35 @@
                             <option value="">Select type</option>
                         </select>
                     </td>
-                    <td data-label="Quantity"><input type="number" id="quantityInput" placeholder="Quantity" required></td>
+                    <td data-label="Size">
+                        <select id="sizeDropdown" class="size-dropdown">
+                            <option value="">Select size</option>
+                        </select>
+                    </td>
+                    <td data-label="Quantity">
+                        <div class="quantity-container">
+                            <input type="range" id="quantityInput" min="1" max="100" value="1">
+                            <span id="quantityValue">1</span>
+                        </div>
+                    </td>
                     <td data-label="Action"><button class="deleteRowBtn">Delete</button></td>
                 </tr>
             </tbody>
-            
         </table>
         
         <div class="button-container">
             <button id="addRowBtn">+</button>
             <button id="submitBtn">Submit</button>
         </div>
-    </div>
 
-    <!-- Модальное окно для ввода пароля -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Enter Password</h2>
-            <input type="password" id="passwordInput" placeholder="Enter password">
-            <button id="confirmPasswordBtn">Confirm</button>
+        <!-- Модальное окно для пароля -->
+        <div id="passwordModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <p>Please enter the password:</p>
+                <input type="password" id="passwordInput">
+                <button id="confirmPasswordBtn">Confirm</button>
+            </div>
         </div>
     </div>
 

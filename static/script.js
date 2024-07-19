@@ -1,19 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     let itemsAndTypes = {};
+    let itemsSizes = {};
 
     const itemDropdownTemplate = document.getElementById('itemDropdown');
     const foremanDropdownTemplate = document.getElementById('foremanDropdown');
     const addRowBtn = document.getElementById('addRowBtn');
     const inventoryBody = document.getElementById('inventoryBody');
     const submitBtn = document.getElementById('submitBtn');
-    const suggestionsList = document.getElementById('suggestions');
 
-    // Fetch items and types from server
+    // Fetch items, types, and sizes from server
     fetch('/get_items_and_types')
         .then(response => response.json())
         .then(data => {
             itemsAndTypes = data.items_and_types;
-            // Populate item dropdown template
+            itemsSizes = data.items_sizes; // Assuming this is the structure received
             populateDropdown(itemDropdownTemplate, Object.keys(itemsAndTypes));
         })
         .catch(error => {
@@ -45,10 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const typeDropdown = row.querySelector('.type-dropdown');
         const types = itemsAndTypes[selectedItem] || [];
 
-        // Clear the type dropdown
         typeDropdown.innerHTML = '';
 
-        // Populate type dropdown with new options
         types.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
@@ -57,11 +55,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function updateSizeOptions(selectElement) {
+        const selectedItem = selectElement.closest('tr').querySelector('.item-dropdown').value;
+        const selectedType = selectElement.value;
+        const row = selectElement.closest('tr');
+        const sizeDropdown = row.querySelector('.size-dropdown');
+        const sizes = itemsSizes[selectedItem] && itemsSizes[selectedItem][selectedType] || [];
+
+        sizeDropdown.innerHTML = '';
+
+        sizes.forEach(size => {
+            if (size.quantity > 0) {
+                const option = document.createElement('option');
+                option.value = size.size;
+                option.textContent = size.size;
+                sizeDropdown.appendChild(option);
+            }
+        });
+    }
+
     addRowBtn.addEventListener('click', function() {
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
             <td data-label="Date"><input type="date" value="${new Date().toISOString().split('T')[0]}" required></td>
-            <td data-label="Name"><input type="text" placeholder="Enter name" oninput="searchWorker(this.value, this.nextElementSibling)" required><ul class="suggestions"></ul></td>
+            <td data-label="Name"><input type="text" placeholder="Enter name" required></td>
             <td data-label="Your Foreman">
                 <select class="foreman-dropdown" required>
                     <option value="">Select foreman</option>
@@ -75,11 +92,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
             </td>
             <td data-label="Type">
-                <select class="type-dropdown">
+                <select class="type-dropdown" required onchange="updateSizeOptions(this)">
                     <option value="">Select type</option>
                 </select>
             </td>
-            <td data-label="Quantity"><input type="number" placeholder="Quantity" required></td>
+            <td data-label="Size">
+                <select class="size-dropdown" required>
+                    <option value="">Select size</option>
+                </select>
+            </td>
+            <td data-label="Quantity"><input type="range" min="1" max="100" value="1" required></td>
             <td data-label="Action"><button class="deleteRowBtn">Delete</button></td>
         `;
         inventoryBody.appendChild(newRow);
@@ -87,11 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add event listener for the delete button
         newRow.querySelector('.deleteRowBtn').addEventListener('click', function() {
             deleteRow(newRow);
-        });
-
-        // Add event listener for the search worker input
-        newRow.querySelector('input[oninput="searchWorker(this.value, this.nextElementSibling)"]').addEventListener('input', function() {
-            searchWorker(this.value, this.nextElementSibling);
         });
     });
 
@@ -116,9 +133,10 @@ document.addEventListener('DOMContentLoaded', function() {
             rowData.foreman = cells[2].querySelector('select').value;
             rowData.item = cells[3].querySelector('select').value;
             rowData.type = cells[4].querySelector('select').value;
-            rowData.quantity = cells[5].querySelector('input').value;
+            rowData.size = cells[5].querySelector('select').value;
+            rowData.quantity = cells[6].querySelector('input').value;
 
-            if (!rowData.date || !rowData.name || !rowData.foreman || !rowData.item || (!rowData.type && itemsAndTypes[rowData.item].length > 0) || !rowData.quantity) {
+            if (!rowData.date || !rowData.name || !rowData.foreman || !rowData.item || !rowData.type || !rowData.size || !rowData.quantity) {
                 valid = false;
                 alert('Please fill out all fields.');
                 return false;
@@ -162,15 +180,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const typeDropdown = row.querySelector('.type-dropdown');
         const types = itemsAndTypes[selectedItem] || [];
 
-        // Clear the type dropdown
         typeDropdown.innerHTML = '';
 
-        // Populate type dropdown with new options
         types.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
             typeDropdown.appendChild(option);
+        });
+    };
+
+    window.updateSizeOptions = function(selectElement) {
+        const selectedItem = selectElement.closest('tr').querySelector('.item-dropdown').value;
+        const selectedType = selectElement.value;
+        const row = selectElement.closest('tr');
+        const sizeDropdown = row.querySelector('.size-dropdown');
+        const sizes = itemsSizes[selectedItem] && itemsSizes[selectedItem][selectedType] || [];
+
+        sizeDropdown.innerHTML = '';
+
+        sizes.forEach(size => {
+            if (size.quantity > 0) {
+                const option = document.createElement('option');
+                option.value = size.size;
+                option.textContent = size.size;
+                sizeDropdown.appendChild(option);
+            }
         });
     };
 
@@ -180,29 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteRow(button.closest('tr'));
         });
     });
-
-    // Function to search for workers
-    window.searchWorker = function(query, suggestionsElement) {
-        fetch(`/search?q=${query}&type=name`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionsElement.innerHTML = '';
-                if (data.length > 0) {
-                    data.forEach(item => {
-                        const li = document.createElement('li');
-                        li.textContent = item;
-                        li.addEventListener('click', function() {
-                            document.getElementById('nameInput').value = item;
-                            suggestionsElement.innerHTML = '';
-                        });
-                        suggestionsElement.appendChild(li);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error searching for workers:', error);
-            });
-    };
 
     // Modal functionality
     const passwordModal = document.getElementById('passwordModal');

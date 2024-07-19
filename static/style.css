@@ -69,12 +69,41 @@ th {
     font-weight: bold;
 }
 
-input[type="date"], input[type="text"], input[type="number"], select {
+tr {
+    display: flex;
+}
+
+td, th {
+    flex: 1;
+    text-align: left;
+}
+
+input[type="date"], input[type="text"], select {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+/* Уменьшить ширину поля даты */
+input[type="date"] {
+    width: 75px; /* Здесь можно установить нужную ширину */
+}
+
+.quantity-container {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-container input[type="range"] {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.quantity-container .quantity-value {
+    width: 30px;
+    text-align: center;
 }
 
 button {

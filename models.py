@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import Column, Integer, String, Date, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -21,6 +22,18 @@ class Foreman(Base):
     __tablename__ = 'foremen'
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, unique=True)
+    
+    
+class Report(Base):
+    __tablename__ = 'reports'
+    id = Column(Integer, primary_key=True)
+    date = Column(Date, nullable=False)
+    worker_name = Column(String, nullable=False)
+    foreman_name = Column(String, nullable=False)
+    item = Column(String, nullable=False)
+    item_type = Column(String, nullable=False)
+    quantity = Column(Integer, nullable=False)
+
 
 engine = create_engine('sqlite:///inventory.db')
 Base.metadata.create_all(engine)
