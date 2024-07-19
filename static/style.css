@@ -98,3 +98,15 @@ button:hover {
 .autocomplete {
     position: relative;
 }
+.deleteRowBtn {
+    background-color: red; 
+    color: white;
+    border: none; 
+    padding: 10px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+}
+
+.deleteRowBtn:hover {
+    background-color: darkred; 
+}

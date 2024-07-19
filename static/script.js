@@ -79,9 +79,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 </select>
             </td>
             <td><input type="number" placeholder="Quantity" required></td>
+            <td><button class="deleteRowBtn">Delete</button></td> <!-- Delete button -->
         `;
         inventoryBody.appendChild(newRow);
+
+        // Add event listener for the delete button
+        newRow.querySelector('.deleteRowBtn').addEventListener('click', function() {
+            deleteRow(newRow);
+        });
     });
+
+    function deleteRow(row) {
+        if (inventoryBody.rows.length > 1) {
+            row.remove();
+        } else {
+            alert('At least one row must remain.');
+        }
+    }
 
     submitBtn.addEventListener('click', function() {
         const rows = inventoryBody.querySelectorAll('tr');
@@ -153,4 +167,11 @@ document.addEventListener('DOMContentLoaded', function() {
             typeDropdown.appendChild(option);
         });
     };
+
+    // Add event listener to the initial delete button
+    document.querySelectorAll('.deleteRowBtn').forEach(button => {
+        button.addEventListener('click', function() {
+            deleteRow(button.closest('tr'));
+        });
+    });
 });

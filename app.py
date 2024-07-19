@@ -33,7 +33,7 @@ def search():
     query = request.args.get('q', '').lower()
     search_type = request.args.get('type', 'name')
     print(f"Search query: {query}, type: {search_type}")
-    
+
     if query:
         if search_type == 'name':
             items = data_storage_sheet.col_values(1)[1:]  # Assuming names are in the first column, skip header
@@ -97,5 +97,4 @@ def get_items_and_types():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    sds
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
