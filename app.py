@@ -64,6 +64,11 @@ def submit():
 
             for entry in data:
                 print(f"Processing entry: {entry}")
+                
+                
+                existing_workers = workers_sheet.col_values(1)
+                if entry['name'] not in existing_workers:
+                    workers_sheet.append_row([entry['name']])
 
                 item_col = headers.index(entry['item'])
                 type_row = item_types.index(entry['type'])
