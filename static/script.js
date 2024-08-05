@@ -7,30 +7,49 @@ document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('addRowBtn');
     const inventoryBody = document.getElementById('inventoryBody');
     const submitBtn = document.getElementById('submitBtn');
+    const refreshBtn = document.createElement('button');
+    refreshBtn.textContent = 'Refresh Data';
+    document.body.insertBefore(refreshBtn, document.body.firstChild);
 
-    // Fetch items, types, and sizes from server
-    fetch('/get_items_and_types')
-        .then(response => response.json())
+    function fetchData() {
+        fetch('/get_items_and_types')
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
         .then(data => {
             itemsAndTypes = data.items_and_types;
-            itemsSizes = data.items_sizes; // Assuming this is the structure received
+            itemsSizes = data.items_sizes;
             populateDropdown(itemDropdownTemplate, Object.keys(itemsAndTypes));
+            console.log('Items and types fetched successfully:', itemsAndTypes);
         })
         .catch(error => {
             console.error('Error fetching items and types:', error);
+            alert('Error fetching items and types. Please check the console for more details.');
         });
 
-    // Fetch foremen from server
-    fetch('/get_foremen')
-        .then(response => response.json())
-        .then(data => {
-            populateDropdown(foremanDropdownTemplate, data.foremen);
-        })
-        .catch(error => {
-            console.error('Error fetching foremen:', error);
-        });
+        fetch('/get_foremen')
+            .then(response => response.json())
+            .then(data => {
+                populateDropdown(foremanDropdownTemplate, data.foremen);
+                console.log('Foremen fetched successfully');
+            })
+            .catch(error => {
+                console.error('Error fetching foremen:', error);
+            });
+    }
+
+    fetchData();  // Initial fetch
+
+    refreshBtn.addEventListener('click', function() {
+        fetchData();
+        alert('Data refreshed!');
+    });
 
     function populateDropdown(dropdown, options) {
+        dropdown.innerHTML = '<option value="">Select option</option>';
         options.forEach(optionValue => {
             const option = document.createElement('option');
             option.value = optionValue;
@@ -73,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
     
     addRowBtn.addEventListener('click', function() {
         const newRow = document.createElement('tr');
@@ -109,16 +127,13 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         inventoryBody.appendChild(newRow);
     
-        // Add event listener for the delete button
         newRow.querySelector('.deleteRowBtn').addEventListener('click', function() {
             deleteRow(newRow);
         });
     
-        // Add autocomplete to the new name input
         const nameInput = newRow.querySelector('input[list="nameDatalist"]');
         addAutocomplete(nameInput);
     
-        // Initialize quantity input event listener
         const quantityInput = newRow.querySelector('.quantity-input');
         quantityInput.oninput = function() {
             const enteredQuantity = parseInt(this.value) || 0;
@@ -138,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     const datalist = document.getElementById('nameDatalist');
-                    datalist.innerHTML = ''; // Clear previous suggestions
+                    datalist.innerHTML = '';
                     data.forEach(item => {
                         const option = document.createElement('option');
                         option.value = item;
@@ -150,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
-    
 
     function deleteRow(row) {
         if (inventoryBody.rows.length > 1) {
@@ -198,16 +212,13 @@ document.addEventListener('DOMContentLoaded', function() {
           .then(result => {
               if (result.status === 'success') {
                   alert('Data submitted successfully!');
-                  // Clear all rows except the first one
                   while (inventoryBody.rows.length > 1) {
                       inventoryBody.deleteRow(1);
                   }
-                  // Reset the first row
                   const firstRow = inventoryBody.rows[0];
                   firstRow.querySelectorAll('input').forEach(input => input.value = '');
                   firstRow.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
                   firstRow.querySelector('.quantity-input').placeholder = '';
-                  // Reload the page after successful submission
                   location.reload();
               } else {
                   alert('Error submitting data.');
@@ -217,23 +228,23 @@ document.addEventListener('DOMContentLoaded', function() {
               console.error('Error submitting data:', error);
           });
     });
-    
 
     window.updateTypeOptions = function(selectElement) {
         const selectedItem = selectElement.value;
         const row = selectElement.closest('tr');
         const typeDropdown = row.querySelector('.type-dropdown');
         const types = itemsAndTypes[selectedItem] || [];
-
-        typeDropdown.innerHTML = '<option value="">Select type</option>'; // Установить значение по умолчанию
-
-
+    
+        typeDropdown.innerHTML = '<option value="">Select type</option>';
+    
         types.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
             typeDropdown.appendChild(option);
         });
+    
+        updateSizeOptions(typeDropdown);
     };
 
     window.updateSizeOptions = function(selectElement) {
@@ -242,40 +253,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const row = selectElement.closest('tr');
         const sizeDropdown = row.querySelector('.size-dropdown');
         const sizes = itemsSizes[selectedItem] && itemsSizes[selectedItem][selectedType] || [];
-
-        sizeDropdown.innerHTML = '<option value="">Select size</option>'; // Установить значение по умолчанию
-
-
-        sizes.forEach(size => {
-            if (size.quantity > 0) {
-                const option = document.createElement('option');
-                option.value = size.size;
-                option.textContent = size.size;
-                sizeDropdown.appendChild(option);
-            }
-        });
-    };
-
-    function addAutocomplete(inputElement) {
-        inputElement.addEventListener('input', function() {
-            const query = inputElement.value;
-            fetch(`/search?q=${query}&type=name`)
-                .then(response => response.json())
-                .then(data => {
-                    const datalist = document.getElementById('nameDatalist');
-                    datalist.innerHTML = ''; // Clear previous suggestions
-                    data.forEach(item => {
-                        const option = document.createElement('option');
-                        option.value = item;
-                        datalist.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching names:', error);
-                });
-        });
-    }
     
+        sizeDropdown.innerHTML = '<option value="">Select size</option>';
+    
+        sizes.forEach(size => {
+            const option = document.createElement('option');
+            option.value = size.size;
+            option.textContent = `${size.size} (${size.quantity} available)`;
+            sizeDropdown.appendChild(option);
+        });
+    
+        updateQuantityPlaceholder(sizeDropdown);
+    };
 
     window.updateQuantityPlaceholder = function(selectElement) {
         const row = selectElement.closest('tr');
@@ -302,14 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     };
    
-    
-
-    
     function updateAvailableQuantities() {
         const rows = inventoryBody.querySelectorAll('tr');
         const quantityUsed = {};
     
-        // Первый проход: подсчет использованного количества
         rows.forEach(row => {
             const selectedItem = row.querySelector('.item-dropdown').value;
             const selectedType = row.querySelector('.type-dropdown').value;
@@ -323,7 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
             quantityUsed[key] = (quantityUsed[key] || 0) + enteredQuantity;
         });
     
-        // Второй проход: обновление доступного количества
         rows.forEach(row => {
             const selectedItem = row.querySelector('.item-dropdown').value;
             const selectedType = row.querySelector('.type-dropdown').value;
@@ -348,24 +332,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add autocomplete to the initial name input
     const initialNameInput = document.querySelector('input[list="nameDatalist"]');
     addAutocomplete(initialNameInput);
 
-    // Add event listener to the initial delete button
     document.querySelectorAll('.deleteRowBtn').forEach(button => {
         button.addEventListener('click', function() {
             deleteRow(button.closest('tr'));
         });
     });
 
-    // Modal functionality
     const passwordModal = document.getElementById('passwordModal');
     const passwordInput = document.getElementById('passwordInput');
     const confirmPasswordBtn = document.getElementById('confirmPasswordBtn');
     const span = document.getElementsByClassName('close')[0];
 
-    let action = ''; // To keep track of whether we're loading or downloading
+    let action = '';
 
     document.getElementById('loadStockBtn').addEventListener('click', function() {
         action = 'load';
@@ -407,7 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.status === 'success') {
                     alert('Stock data loaded successfully!');
-                    // Reload the page after successful load
                     location.reload();
                 } else {
                     alert('Error loading stock data.');
@@ -417,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error loading stock data:', error);
             });
     }
-    
 
     function downloadStockData() {
         fetch('/download_all_data', {

@@ -121,36 +121,49 @@ def submit():
 def get_items_and_types():
     try:
         stock_data = stock_sheet.get_all_values()
-        headers = stock_data[0][1:]  # Пропускаем первую пустую ячейку
-        item_types = stock_data[1][1:]
-        sizes = [row[0] for row in stock_data[2:]]
+        headers = stock_data[0]  # Get all headers
+        sizes = [row[0] for row in stock_data[1:] if row[0].strip()]  # Sizes are in the first column
 
         items_and_types = {}
         items_sizes = {}
 
-        for i, item in enumerate(headers):
-            if item not in items_and_types:
-                items_and_types[item] = []
-            if item_types[i] not in items_and_types[item]:
-                items_and_types[item].append(item_types[i])
-
-            if item not in items_sizes:
+        for col, item in enumerate(headers[1:], start=1):  # Skip the first column (sizes)
+            if item and item.strip():
+                items_and_types[item] = set()
                 items_sizes[item] = {}
-            if item_types[i] not in items_sizes[item]:
-                items_sizes[item][item_types[i]] = []
 
-            for j, size in enumerate(sizes):
-                quantity = int(stock_data[j+2][i+1] or 0)
-                if quantity > 0:
-                    items_sizes[item][item_types[i]].append({'size': size, 'quantity': quantity})
+                for row in range(1, len(stock_data)):
+                    if col < len(stock_data[row]):
+                        item_type = stock_data[row][col].strip()
+                        if item_type:
+                            items_and_types[item].add(item_type)
+                            
+                            if row - 1 < len(sizes):  # Check if the size index is within range
+                                size = sizes[row - 1]
+                                quantity = int(stock_data[row][col]) if stock_data[row][col].isdigit() else 0
+                                
+                                if item_type not in items_sizes[item]:
+                                    items_sizes[item][item_type] = []
+                                
+                                if quantity > 0:
+                                    items_sizes[item][item_type].append({'size': size, 'quantity': quantity})
+
+        # Convert sets to lists for JSON serialization
+        for item in items_and_types:
+            items_and_types[item] = list(items_and_types[item])
 
         print(f"Fetched items and types: {items_and_types}")
         print(f"Fetched items and sizes: {items_sizes}")
         return jsonify({'items_and_types': items_and_types, 'items_sizes': items_sizes})
     except Exception as e:
-        print(f"Error in get_items_and_types: {str(e)}")
+        error_message = f"Error in get_items_and_types: {str(e)}"
+        print(error_message)
+        print("Current state:")
+        print(f"stock_data length: {len(stock_data)}")
+        print(f"headers: {headers}")
+        print(f"sizes: {sizes}")
         print(traceback.format_exc())
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': error_message, 'details': traceback.format_exc()}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False, port =5002)
