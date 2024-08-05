@@ -419,6 +419,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
 
+    
+
     function downloadStockData() {
         fetch('/download_all_data', {
             method: 'POST'
