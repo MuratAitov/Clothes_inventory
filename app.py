@@ -153,4 +153,4 @@ def get_items_and_types():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False, port =5002)
+    app.run(debug=True, use_reloader=False)
