@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 # Google Sheets setup
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name('healthy-saga-428922-n9-d1d231903861.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name("healthy-saga-428922-n9-d1d231903861.json", scope)
 client = gspread.authorize(creds)
 sheet = client.open_by_url('https://docs.google.com/spreadsheets/d/1s1XJLQeE_M9W2lICO94CiNptZYDvxY66GbCR_LqE2AU/edit?gid=0#gid=0')
 stock_sheet = sheet.worksheet("Stock")
@@ -48,6 +48,7 @@ def search():
         print(f"Matched items: {matched_items}")
         return jsonify(matched_items)
     return jsonify([])
+
 @app.route('/submit', methods=['POST'])
 def submit():
     try:
@@ -64,24 +65,20 @@ def submit():
             for entry in data:
                 print(f"Processing entry: {entry}")
                 
+                
                 existing_workers = workers_sheet.col_values(1)
                 if entry['name'] not in existing_workers:
                     workers_sheet.append_row([entry['name']])
 
                 item_col = headers.index(entry['item'])
-                type_col = item_col + item_types[item_col:].index(entry['type'])
+                type_row = item_types.index(entry['type'])
                 size_row = sizes.index(entry['size']) + 2
 
                 print(f"Item column: {item_col}")
-                print(f"Type column: {type_col}")
+                print(f"Type row: {type_row}")
                 print(f"Size row: {size_row}")
 
-                if type_col >= len(stock_data[size_row]):
-                    error_message = f"Invalid type {entry['type']} for item {entry['item']}"
-                    print(error_message)
-                    return jsonify({'status': 'failure', 'message': error_message}), 400
-
-                current_quantity = stock_data[size_row][type_col]
+                current_quantity = stock_data[size_row][item_col]
                 print(f"Current quantity (raw): {current_quantity}")
 
                 current_quantity = int(current_quantity) if current_quantity and current_quantity.isdigit() else 0
@@ -96,7 +93,7 @@ def submit():
                     return jsonify({'status': 'failure', 'message': error_message}), 400
                 
                 # Update the stock data
-                stock_data[size_row][type_col] = str(new_quantity)
+                stock_data[size_row][item_col] = str(new_quantity)
                 stock_sheet.update(f'A1:{chr(65+len(headers)-1)}{len(stock_data)}', stock_data)
 
                 # Add entry to Report sheet
@@ -116,7 +113,7 @@ def submit():
         print(f"Error in submit: {str(e)}")
         print(traceback.format_exc())
         return jsonify({'status': 'failure', 'message': str(e)}), 500
-    
+
 @app.route('/get_items_and_types', methods=['GET'])
 def get_items_and_types():
     try:
@@ -166,4 +163,4 @@ def get_items_and_types():
         return jsonify({'error': error_message, 'details': traceback.format_exc()}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False, port =5002)
+    app.run(debug=True, use_reloader=False)
